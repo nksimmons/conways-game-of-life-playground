@@ -5,6 +5,9 @@ classic patterns, ten Life-like rules, bounded and wrap-around universes, and
 a grid-view control. Zooming out creates more, smaller squares; zooming in
 creates fewer, larger squares while keeping the pattern centered.
 
+The rulebook lists every supported Life-like rule with its exact birth and
+survival neighbour counts. Each rule card is also a control for choosing it.
+
 There is no server, account, database, or API call. Everything happens in the
 browser and disappears when the tab is closed.
 

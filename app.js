@@ -28,6 +28,7 @@
   const grid = document.querySelector("#life-grid");
   const ruleSelect = document.querySelector("#rule-select");
   const ruleDescription = document.querySelector("#rule-description");
+  const ruleList = document.querySelector("#rule-list");
   const patternPicker = document.querySelector("#pattern-picker");
   const generation = document.querySelector("#generation");
   const population = document.querySelector("#population");
@@ -57,6 +58,10 @@
   function ruleParts(rule) {
     const [birth, survival] = rule.id.substring(1).split("/S");
     return { birth: new Set([...birth].map(Number)), survival: new Set([...survival].map(Number)) };
+  }
+
+  function neighborCounts(counts) {
+    return counts.size === 0 ? "never" : [...counts].join(", ");
   }
 
   function countNeighbors(row, col) {
@@ -167,7 +172,9 @@
   function applyRule(rule) {
     currentRule = rule;
     document.documentElement.style.setProperty("--accent", rule.accent);
+    ruleSelect.value = rule.id;
     ruleDescription.textContent = `${rule.id}: ${rule.description}`;
+    document.querySelectorAll(".rule-list-item").forEach((item) => item.classList.toggle("selected", item.dataset.rule === rule.id));
     status.textContent = `${rule.name} is now in charge`;
     render();
   }
@@ -241,6 +248,16 @@
       ruleSelect.append(option);
     });
     ruleSelect.addEventListener("change", () => applyRule(rules.find((rule) => rule.id === ruleSelect.value)));
+
+    rules.forEach((rule) => {
+      const { birth, survival } = ruleParts(rule);
+      const item = document.createElement("li");
+      item.className = "rule-list-item";
+      item.dataset.rule = rule.id;
+      item.innerHTML = `<button type="button"><strong>${rule.name}</strong><span class="rule-id">${rule.id}</span><span>Born: ${neighborCounts(birth)}</span><span>Survives: ${neighborCounts(survival)}</span></button>`;
+      item.querySelector("button").addEventListener("click", () => applyRule(rule));
+      ruleList.append(item);
+    });
   }
 
   function setupPatterns() {
