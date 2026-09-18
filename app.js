@@ -41,6 +41,11 @@
   const zoomValue = document.querySelector("#zoom-value");
   const gridViewport = document.querySelector("#grid-viewport");
   const topologyDescription = document.querySelector("#topology-description");
+  const colorControls = [
+    { input: document.querySelector("#alive-color"), property: "--alive-cell", value: "#f35d51" },
+    { input: document.querySelector("#dead-color"), property: "--dead-cell", value: "#1b2a54" },
+    { input: document.querySelector("#space-color"), property: "--universe-space", value: "#101a3a" }
+  ];
   const cellButtons = [];
   let living = new Set();
   let currentRule = rules[0];
@@ -211,6 +216,11 @@
     gridViewport.scrollTop = 0;
   }
 
+  function setColor(control, value) {
+    control.input.value = value;
+    document.documentElement.style.setProperty(control.property, value);
+  }
+
   function setupGrid() {
     grid.style.gridTemplateColumns = `repeat(${width}, 1fr)`;
     grid.style.aspectRatio = `${width} / ${height}`;
@@ -288,6 +298,11 @@
         : "The left joins the right and the top joins the bottom. Travelers can wrap around.";
       status.textContent = currentTopology === "bounded" ? "Your universe has walls" : "Your universe wraps around";
     }));
+    colorControls.forEach((control) => control.input.addEventListener("input", () => setColor(control, control.input.value)));
+    document.querySelector("#color-reset-button").addEventListener("click", () => {
+      colorControls.forEach((control) => setColor(control, control.value));
+      status.textContent = "Your original colors are back";
+    });
     window.addEventListener("keydown", (event) => {
       if (event.target.matches("input, select, button")) return;
       if (event.code === "Space") { event.preventDefault(); play(); }

@@ -8,6 +8,9 @@ creates fewer, larger squares while keeping the pattern centered.
 The rulebook lists every supported Life-like rule with its exact birth and
 survival neighbour counts. Each rule card is also a control for choosing it.
 
+The color controls change living cells, empty cells, and the space around the
+grid. They stay in place when a different Life rule is selected.
+
 There is no server, account, database, or API call. Everything happens in the
 browser and disappears when the tab is closed.
 

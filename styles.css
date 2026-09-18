@@ -6,6 +6,9 @@
   --grid: #dbe1ec;
   --accent: #f35d51;
   --accent-deep: #c93b45;
+  --alive-cell: #f35d51;
+  --dead-cell: #1b2a54;
+  --universe-space: #101a3a;
   --sky: #e9f6ff;
   --shadow: 0 18px 45px rgba(28, 50, 87, .13);
 }
@@ -66,15 +69,16 @@ select { width: 100%; appearance: none; border: 1px solid #d7dfec; border-radius
 .topology-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: .4rem; margin-top: .85rem; }
 .topology-choice { border: 1px solid #dfe5ef; border-radius: 9px; background: #fff; color: var(--muted); font-size: .74rem; font-weight: 800; padding: .62rem .35rem; }
 .topology-choice.selected { border-color: var(--accent); background: var(--accent); color: #fff; }
+.color-controls { display: grid; gap: .55rem; margin-top: 1rem; }.color-controls label { display: flex; align-items: center; justify-content: space-between; color: var(--muted); font-size: .77rem; font-weight: 800; }.color-controls input { width: 2.75rem; height: 2rem; border: 1px solid #d9e1ec; border-radius: 7px; background: #fff; cursor: pointer; padding: .15rem; }.color-reset { width: 100%; margin-top: .85rem; border: 1px solid #dce3ee; border-radius: 9px; background: #fff; color: var(--ink); font-size: .75rem; font-weight: 800; padding: .6rem; }.color-reset:hover { border-color: var(--accent); color: var(--accent-deep); }
 
 .universe-card { padding: clamp(1rem, 2.5vw, 1.55rem); overflow: hidden; }
 .universe-toolbar { display: flex; align-items: center; justify-content: space-between; gap: .8rem; margin-bottom: 1rem; }.universe-toolbar h2 { margin: 0; font-size: 1.38rem; }
 .status { max-width: 16rem; padding: .42rem .68rem; border-radius: 999px; background: #eef4ff; color: #496082; font-size: .72rem; font-weight: 800; text-align: right; }
-.grid-frame { padding: clamp(.55rem, 1.5vw, .9rem); border-radius: 16px; background: #101a3a; box-shadow: inset 0 0 0 1px rgba(255,255,255,.08), 0 15px 35px rgba(12, 28, 62, .23); }
+.grid-frame { padding: clamp(.55rem, 1.5vw, .9rem); border-radius: 16px; background: var(--universe-space); box-shadow: inset 0 0 0 1px rgba(255,255,255,.08), 0 15px 35px rgba(12, 28, 62, .23); }
 .grid-viewport { max-width: 100%; overflow: hidden; border-radius: 9px; }
 .grid { display: grid; width: 100%; gap: 1px; aspect-ratio: 34 / 22; user-select: none; touch-action: none; }
-.cell { min-width: 0; border: 0; border-radius: 1px; background: #1b2a54; padding: 0; transition: background .12s, transform .12s; }
-.cell:hover { background: #324b84; }.cell.alive { background: var(--accent); box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 60%, transparent); }.cell.alive:hover { transform: scale(.87); }
+.cell { min-width: 0; border: 0; border-radius: 1px; background: var(--dead-cell); padding: 0; transition: background .12s, transform .12s; }
+.cell:hover { background: color-mix(in srgb, var(--dead-cell) 78%, white); }.cell.alive { background: var(--alive-cell); box-shadow: 0 0 10px color-mix(in srgb, var(--alive-cell) 60%, transparent); }.cell.alive:hover { transform: scale(.87); }
 .play-controls { display: flex; flex-wrap: wrap; align-items: center; gap: .55rem; margin-top: 1rem; }.play-controls button { min-height: 2.55rem; border-radius: 10px; font-size: .83rem; font-weight: 850; padding: 0 .82rem; }.primary-control { border: 1px solid var(--accent); background: var(--accent); color: #fff; }.primary-control:hover { background: var(--accent-deep); }.control-button { border: 1px solid #dce3ee; background: #fff; color: var(--ink); }.control-button:hover { border-color: var(--accent); color: var(--accent-deep); }.speed-control, .zoom-control { display: flex; align-items: center; gap: .45rem; color: var(--muted); font-size: .75rem; font-weight: 800; }.speed-control { margin-left: auto; }.speed-control input, .zoom-control input { width: 75px; accent-color: var(--accent); }.zoom-control span { display: grid; gap: .05rem; }.zoom-control output { color: var(--accent-deep); font-variant-numeric: tabular-nums; }.zoom-reset { padding: 0 .65rem !important; }
 .tip { margin: 1rem 0 0; color: var(--muted); font-size: .82rem; line-height: 1.45; }.tip b { color: var(--ink); }
 
