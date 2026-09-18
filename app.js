@@ -91,6 +91,10 @@
   const zoomValue = document.querySelector("#zoom-value");
   const gridViewport = document.querySelector("#grid-viewport");
   const topologyDescription = document.querySelector("#topology-description");
+  const challengeScore = document.querySelector("#challenge-score");
+  const challengeBest = document.querySelector("#challenge-best");
+  const challengeButton = document.querySelector("#challenge-button");
+  const challengeMessage = document.querySelector("#challenge-message");
   const colorControls = [
     { input: document.querySelector("#alive-color"), property: "--alive-cell", value: "#f35d51" },
     { input: document.querySelector("#dead-color"), property: "--dead-cell", value: "#1b2a54" },
@@ -105,6 +109,12 @@
   let timer = null;
   let drawing = false;
   let drawValue = true;
+  let challengeState = "ready";
+  let challengeHistory = new Map();
+  let challengeSeed = null;
+  let challengeBestScore = Number(window.localStorage.getItem("life-lab-best-score") || "0");
+
+  const maxTrackedChallengeStates = 2000;
 
   const pointKey = (row, col) => `${row}:${col}`;
   const wrap = (value, size) => (value % size + size) % size;
@@ -134,6 +144,85 @@
     return `${birthExplanation} ${survivalExplanation}`;
   }
 
+  function boardSignature() {
+    return [...living].sort().join("|");
+  }
+
+  function resetChallenge(message = "Choose a pattern or draw your own seed, then start the challenge.") {
+    challengeState = "ready";
+    challengeHistory = new Map();
+    challengeSeed = null;
+    challengeMessage.textContent = message;
+    challengeScore.textContent = "—";
+    challengeBest.textContent = challengeBestScore.toLocaleString();
+    challengeButton.disabled = false;
+    challengeButton.textContent = "Start challenge";
+  }
+
+  function finishChallenge(message) {
+    challengeState = "finished";
+    challengeMessage.textContent = message;
+    challengeButton.disabled = false;
+    challengeButton.textContent = "Try this seed again";
+    status.textContent = "Challenge complete";
+
+    if (currentGeneration > challengeBestScore) {
+      challengeBestScore = currentGeneration;
+      window.localStorage.setItem("life-lab-best-score", String(challengeBestScore));
+    }
+
+    stop();
+  }
+
+  function checkChallenge() {
+    if (challengeState !== "running") return false;
+
+    if (living.size === 0) {
+      finishChallenge(`Life ran out after ${currentGeneration.toLocaleString()} generations. Try another seed!`);
+      return true;
+    }
+
+    const signature = boardSignature();
+    const earlierGeneration = challengeHistory.get(signature);
+    if (earlierGeneration !== undefined) {
+      const period = currentGeneration - earlierGeneration;
+      finishChallenge(`Loop found after ${currentGeneration.toLocaleString()} generations. It repeats every ${period} generation${period === 1 ? "" : "s"}, so this universe can live forever!`);
+      return true;
+    }
+
+    if (challengeHistory.size >= maxTrackedChallengeStates) {
+      challengeHistory = new Map([[signature, currentGeneration]]);
+      challengeMessage.textContent = `Still going after ${currentGeneration.toLocaleString()} generations. The loop detector has started a fresh window.`;
+      return false;
+    }
+
+    challengeHistory.set(signature, currentGeneration);
+    return false;
+  }
+
+  function startChallenge() {
+    if (living.size === 0) {
+      challengeMessage.textContent = "Add some living squares first. A universe needs a seed!";
+      return;
+    }
+
+    stop();
+    if (challengeState === "finished" && challengeSeed !== null) {
+      living = new Set(challengeSeed);
+    } else {
+      challengeSeed = new Set(living);
+    }
+    currentGeneration = 0;
+    currentPattern = "Survival challenge";
+    challengeState = "running";
+    challengeHistory = new Map([[boardSignature(), currentGeneration]]);
+    challengeMessage.textContent = "The clock is running. How long can your universe keep life going?";
+    challengeButton.disabled = true;
+    challengeButton.textContent = "Challenge running";
+    render();
+    play();
+  }
+
   function countNeighbors(row, col) {
     let neighbors = 0;
     for (let rowOffset = -1; rowOffset <= 1; rowOffset += 1) {
@@ -153,7 +242,7 @@
     return neighbors;
   }
 
-  function advance() {
+  function advance(shouldRender = true) {
     const next = new Set();
     const { birth, survival } = ruleParts(currentRule);
     for (let row = 0; row < height; row += 1) {
@@ -165,7 +254,8 @@
     }
     living = next;
     currentGeneration += 1;
-    render();
+    const challengeFinished = checkChallenge();
+    if (shouldRender || challengeFinished) render();
   }
 
   function render() {
@@ -179,6 +269,8 @@
     population.textContent = living.size.toLocaleString();
     ruleBadge.textContent = currentRule.id;
     patternName.textContent = currentPattern;
+    challengeScore.textContent = challengeState === "ready" ? "—" : currentGeneration.toLocaleString();
+    challengeBest.textContent = challengeBestScore.toLocaleString();
   }
 
   function setCell(row, col, alive) {
@@ -186,6 +278,7 @@
     if (alive) living.add(key); else living.delete(key);
     currentPattern = "Your own pattern";
     stop();
+    resetChallenge("Your seed changed. Start a fresh challenge when you are ready.");
     render();
   }
 
@@ -193,7 +286,7 @@
     if (height > maxRow && width > maxCol) return;
 
     let fittedZoom = 50;
-    for (let candidate = 50; candidate <= 220; candidate += 10) {
+    for (let candidate = 34; candidate <= 220; candidate += 1) {
       const scale = candidate / 100;
       const candidateWidth = Math.max(12, Math.round(baseWidth / scale));
       const candidateHeight = Math.max(8, Math.round(baseHeight / scale));
@@ -214,6 +307,7 @@
     currentGeneration = 0;
     currentPattern = pattern.name;
     stop();
+    resetChallenge(`${pattern.name} is ready. Start the challenge whenever you like.`);
     document.querySelectorAll(".pattern-card").forEach((card) => card.classList.toggle("selected", card.dataset.pattern === pattern.id));
     status.textContent = `${pattern.name} is ready`;
     render();
@@ -229,6 +323,7 @@
     currentGeneration = 0;
     currentPattern = "A surprise universe";
     stop();
+    resetChallenge("A surprise seed is ready. See how long it lasts!");
     document.querySelectorAll(".pattern-card").forEach((card) => card.classList.remove("selected"));
     status.textContent = "A surprise is unfolding";
     render();
@@ -247,8 +342,10 @@
       status.textContent = "Paused. Take a closer look.";
       return;
     }
-    const interval = Math.round(1200 / Number(speed.value));
-    timer = window.setInterval(advance, interval);
+    const hertz = Number(speed.value);
+    const interval = Math.max(16, Math.round(1000 / hertz));
+    const renderEvery = Math.max(1, Math.ceil(hertz / 30));
+    timer = window.setInterval(() => advance((currentGeneration + 1) % renderEvery === 0), interval);
     playButton.innerHTML = '<span aria-hidden="true">Ⅱ</span> Pause';
     playButton.setAttribute("aria-label", "Pause");
     status.textContent = "Your universe is evolving";
@@ -260,6 +357,7 @@
     ruleSelect.value = rule.id;
     ruleDescription.textContent = `${rule.id}: ${rule.description} ${ruleMechanics(rule)}`;
     document.querySelectorAll(".rule-list-item").forEach((item) => item.classList.toggle("selected", item.dataset.rule === rule.id));
+    resetChallenge("The rules changed. Start a fresh challenge for this universe.");
     status.textContent = `${rule.name} is now in charge`;
     render();
   }
@@ -290,6 +388,8 @@
     width = nextWidth;
     height = nextHeight;
     living = resizedLiving;
+    stop();
+    resetChallenge("The grid changed. Start a fresh challenge for this universe.");
     setupGrid();
     render();
     gridViewport.scrollLeft = 0;
@@ -368,10 +468,10 @@
   function setupControls() {
     document.querySelector("#play-button").addEventListener("click", play);
     document.querySelector("#step-button").addEventListener("click", () => { stop(); advance(); status.textContent = "One generation later"; });
-    document.querySelector("#clear-button").addEventListener("click", () => { living = new Set(); currentGeneration = 0; currentPattern = "Empty canvas"; stop(); status.textContent = "A fresh empty universe"; document.querySelectorAll(".pattern-card").forEach((card) => card.classList.remove("selected")); render(); });
+    document.querySelector("#clear-button").addEventListener("click", () => { living = new Set(); currentGeneration = 0; currentPattern = "Empty canvas"; stop(); resetChallenge(); status.textContent = "A fresh empty universe"; document.querySelectorAll(".pattern-card").forEach((card) => card.classList.remove("selected")); render(); });
     document.querySelector("#random-button").addEventListener("click", randomize);
     speed.addEventListener("input", () => {
-      speedValue.textContent = `${speed.value}×`;
+      speedValue.textContent = `${speed.value} Hz`;
       if (timer !== null) { stop(); play(); }
     });
     zoom.addEventListener("input", () => setZoom(zoom.value));
@@ -379,6 +479,8 @@
     document.querySelectorAll(".topology-choice").forEach((choice) => choice.addEventListener("click", () => {
       currentTopology = choice.dataset.topology;
       document.querySelectorAll(".topology-choice").forEach((button) => button.classList.toggle("selected", button === choice));
+      stop();
+      resetChallenge("The edge changed. Start a fresh challenge for this universe.");
       topologyDescription.textContent = currentTopology === "bounded"
         ? "Beyond the edge is empty space. Travelers can fall apart at the wall."
         : "The left joins the right and the top joins the bottom. Travelers can wrap around.";
@@ -389,6 +491,7 @@
       colorControls.forEach((control) => setColor(control, control.value));
       status.textContent = "Your original colors are back";
     });
+    challengeButton.addEventListener("click", startChallenge);
     window.addEventListener("keydown", (event) => {
       if (event.target.matches("input, select, button")) return;
       if (event.code === "Space") { event.preventDefault(); play(); }

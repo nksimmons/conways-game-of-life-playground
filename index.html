@@ -112,15 +112,31 @@
           <button class="control-button" id="clear-button" type="button">Clear</button>
           <button class="control-button" id="random-button" type="button">Surprise me</button>
           <label class="speed-control" for="speed">
-            <span>Speed <output id="speed-value" for="speed">6×</output></span>
-            <input id="speed" type="range" min="1" max="20" value="6">
+            <span>Speed <output id="speed-value" for="speed">5 Hz</output></span>
+            <input id="speed" type="range" min="1" max="60" value="5">
           </label>
           <label class="zoom-control" for="zoom">
             <span>Grid view <output id="zoom-value" for="zoom">34 × 22 squares</output></span>
-            <input id="zoom" type="range" min="50" max="220" value="100" step="10">
+            <input id="zoom" type="range" min="34" max="220" value="100" step="1">
           </label>
           <button class="control-button zoom-reset" id="zoom-reset-button" type="button">Reset grid</button>
         </div>
+
+        <section class="challenge-panel" aria-labelledby="challenge-title">
+          <div class="challenge-heading">
+            <p class="eyebrow">Survival challenge</p>
+            <h2 id="challenge-title">How long can your universe keep going?</h2>
+            <p>Build a seed, then start the run. Your score is generations survived. If the same shape returns, it has found a loop and can continue forever.</p>
+          </div>
+          <div class="challenge-actions">
+            <dl class="challenge-stats" aria-label="Challenge score">
+              <div><dt>This run</dt><dd id="challenge-score">—</dd></div>
+              <div><dt>Best here</dt><dd id="challenge-best">0</dd></div>
+            </dl>
+            <button class="challenge-button" id="challenge-button" type="button">Start challenge</button>
+          </div>
+          <p class="challenge-message" id="challenge-message" aria-live="polite">Choose a pattern or draw your own seed, then start the challenge.</p>
+        </section>
 
         <p class="tip"><b>Try this:</b> draw five cells in an arrow shape, then press Play. That tiny traveler is called a glider.</p>
       </section>
