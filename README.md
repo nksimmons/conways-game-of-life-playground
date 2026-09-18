@@ -2,7 +2,8 @@
 
 A small, browser-only Game of Life playground for curious minds. It includes
 classic patterns, ten Life-like rules, bounded and wrap-around universes, and
-grid-size controls for looking closely at an evolving pattern.
+a grid-view control. Zooming out creates more, smaller squares; zooming in
+creates fewer, larger squares while keeping the pattern centered.
 
 There is no server, account, database, or API call. Everything happens in the
 browser and disappears when the tab is closed.

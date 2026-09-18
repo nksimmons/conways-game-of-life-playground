@@ -1,6 +1,8 @@
 (() => {
-  const width = 34;
-  const height = 22;
+  const baseWidth = 34;
+  const baseHeight = 22;
+  let width = baseWidth;
+  let height = baseHeight;
   const rules = [
     { id: "B3/S23", name: "Conway's Life", accent: "#f35d51", description: "The famous original. It grows gliders, blinkers, and surprisingly busy little worlds." },
     { id: "B36/S23", name: "HighLife", accent: "#e27d28", description: "Like Conway's Life, but six neighbors can also create a new cell." },
@@ -172,15 +174,41 @@
 
   function setZoom(value) {
     const percentage = Number(value);
-    document.documentElement.style.setProperty("--grid-zoom", String(percentage / 100));
+    const scale = percentage / 100;
+    const nextWidth = Math.max(12, Math.round(baseWidth / scale));
+    const nextHeight = Math.max(8, Math.round(baseHeight / scale));
+
     zoom.value = String(percentage);
-    zoomValue.textContent = `${percentage}%`;
+    zoomValue.textContent = `${nextWidth} × ${nextHeight} squares`;
+
+    if (nextWidth === width && nextHeight === height) return;
+
+    const rowShift = Math.floor((nextHeight - height) / 2);
+    const columnShift = Math.floor((nextWidth - width) / 2);
+    const resizedLiving = new Set();
+    living.forEach((key) => {
+      const [row, col] = coordinates(key);
+      const nextRow = row + rowShift;
+      const nextCol = col + columnShift;
+      if (nextRow >= 0 && nextRow < nextHeight && nextCol >= 0 && nextCol < nextWidth) {
+        resizedLiving.add(pointKey(nextRow, nextCol));
+      }
+    });
+
+    width = nextWidth;
+    height = nextHeight;
+    living = resizedLiving;
+    setupGrid();
+    render();
     gridViewport.scrollLeft = 0;
     gridViewport.scrollTop = 0;
   }
 
   function setupGrid() {
     grid.style.gridTemplateColumns = `repeat(${width}, 1fr)`;
+    grid.style.aspectRatio = `${width} / ${height}`;
+    grid.replaceChildren();
+    cellButtons.length = 0;
     for (let row = 0; row < height; row += 1) {
       for (let col = 0; col < width; col += 1) {
         const cell = document.createElement("button");
@@ -254,7 +282,6 @@
   setupRules();
   setupPatterns();
   setupControls();
-  setZoom(zoom.value);
   applyRule(currentRule);
   loadPattern(patterns[0]);
 })();

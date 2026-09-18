@@ -6,7 +6,6 @@
   --grid: #dbe1ec;
   --accent: #f35d51;
   --accent-deep: #c93b45;
-  --grid-zoom: 1;
   --sky: #e9f6ff;
   --shadow: 0 18px 45px rgba(28, 50, 87, .13);
 }
@@ -72,8 +71,8 @@ select { width: 100%; appearance: none; border: 1px solid #d7dfec; border-radius
 .universe-toolbar { display: flex; align-items: center; justify-content: space-between; gap: .8rem; margin-bottom: 1rem; }.universe-toolbar h2 { margin: 0; font-size: 1.38rem; }
 .status { max-width: 16rem; padding: .42rem .68rem; border-radius: 999px; background: #eef4ff; color: #496082; font-size: .72rem; font-weight: 800; text-align: right; }
 .grid-frame { padding: clamp(.55rem, 1.5vw, .9rem); border-radius: 16px; background: #101a3a; box-shadow: inset 0 0 0 1px rgba(255,255,255,.08), 0 15px 35px rgba(12, 28, 62, .23); }
-.grid-viewport { max-width: 100%; overflow: auto; border-radius: 9px; }
-.grid { display: grid; width: calc(100% * var(--grid-zoom)); gap: 1px; aspect-ratio: 34 / 22; user-select: none; touch-action: none; }
+.grid-viewport { max-width: 100%; overflow: hidden; border-radius: 9px; }
+.grid { display: grid; width: 100%; gap: 1px; aspect-ratio: 34 / 22; user-select: none; touch-action: none; }
 .cell { min-width: 0; border: 0; border-radius: 1px; background: #1b2a54; padding: 0; transition: background .12s, transform .12s; }
 .cell:hover { background: #324b84; }.cell.alive { background: var(--accent); box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 60%, transparent); }.cell.alive:hover { transform: scale(.87); }
 .play-controls { display: flex; flex-wrap: wrap; align-items: center; gap: .55rem; margin-top: 1rem; }.play-controls button { min-height: 2.55rem; border-radius: 10px; font-size: .83rem; font-weight: 850; padding: 0 .82rem; }.primary-control { border: 1px solid var(--accent); background: var(--accent); color: #fff; }.primary-control:hover { background: var(--accent-deep); }.control-button { border: 1px solid #dce3ee; background: #fff; color: var(--ink); }.control-button:hover { border-color: var(--accent); color: var(--accent-deep); }.speed-control, .zoom-control { display: flex; align-items: center; gap: .45rem; color: var(--muted); font-size: .75rem; font-weight: 800; }.speed-control { margin-left: auto; }.speed-control input, .zoom-control input { width: 75px; accent-color: var(--accent); }.zoom-control span { display: grid; gap: .05rem; }.zoom-control output { color: var(--accent-deep); font-variant-numeric: tabular-nums; }.zoom-reset { padding: 0 .65rem !important; }
