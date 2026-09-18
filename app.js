@@ -16,6 +16,37 @@
     { id: "B34/S34", name: "34 Life", accent: "#ad7a2c", description: "Three or four neighbors is the magic number for both birth and survival." }
   ];
 
+  function cellsFromRle(rle) {
+    const cells = [];
+    let row = 0;
+    let col = 0;
+    let digits = "";
+
+    for (const token of rle) {
+      if (token >= "0" && token <= "9") {
+        digits += token;
+        continue;
+      }
+
+      const run = Number(digits || "1");
+      digits = "";
+
+      if (token === "o") {
+        for (let offset = 0; offset < run; offset += 1) cells.push([row, col + offset]);
+        col += run;
+      } else if (token === "b") {
+        col += run;
+      } else if (token === "$") {
+        row += run;
+        col = 0;
+      } else if (token === "!") {
+        break;
+      }
+    }
+
+    return cells;
+  }
+
   const patterns = [
     { id: "glider", name: "Glider", hint: "A tiny spaceship", cells: [[0, 1], [1, 2], [2, 0], [2, 1], [2, 2]] },
     { id: "blinker", name: "Blinker", hint: "Flips forever", cells: [[0, 0], [0, 1], [0, 2]] },
@@ -25,11 +56,29 @@
     { id: "diehard", name: "Diehard", hint: "A long adventure", cells: [[0, 6], [1, 0], [1, 1], [2, 1], [2, 5], [2, 6], [2, 7]] }
   ];
 
+  const experiments = [
+    {
+      id: "pulsar",
+      name: "Pulsar",
+      hint: "A three-step clock",
+      rule: "B3/S23",
+      cells: cellsFromRle("2b3o3b3o$13b$o4bobo4bo$o4bobo4bo$o4bobo4bo$2b3o3b3o$13b$2b3o3b3o$o4bobo4bo$o4bobo4bo$o4bobo4bo$13b$2b3o3b3o!")
+    },
+    {
+      id: "gosper-gun",
+      name: "Glider gun",
+      hint: "A signal factory",
+      rule: "B3/S23",
+      cells: cellsFromRle("24bo$22bobo$12b2o6b2o12b2o$11bo3bo4b2o12b2o$2o8bo5bo3b2o$2o8bo3bob2o4bobo$10bo5bo7bo$11bo3bo$12b2o!")
+    }
+  ];
+
   const grid = document.querySelector("#life-grid");
   const ruleSelect = document.querySelector("#rule-select");
   const ruleDescription = document.querySelector("#rule-description");
   const ruleList = document.querySelector("#rule-list");
   const patternPicker = document.querySelector("#pattern-picker");
+  const experimentPicker = document.querySelector("#experiment-picker");
   const generation = document.querySelector("#generation");
   const population = document.querySelector("#population");
   const ruleBadge = document.querySelector("#rule-badge");
@@ -124,10 +173,25 @@
     render();
   }
 
+  function fitPattern(maxRow, maxCol) {
+    if (height > maxRow && width > maxCol) return;
+
+    let fittedZoom = 50;
+    for (let candidate = 50; candidate <= 220; candidate += 10) {
+      const scale = candidate / 100;
+      const candidateWidth = Math.max(12, Math.round(baseWidth / scale));
+      const candidateHeight = Math.max(8, Math.round(baseHeight / scale));
+      if (candidateWidth > maxCol && candidateHeight > maxRow) fittedZoom = candidate;
+    }
+    setZoom(fittedZoom);
+  }
+
   function loadPattern(pattern) {
-    living = new Set();
     const maxRow = Math.max(...pattern.cells.map(([row]) => row));
     const maxCol = Math.max(...pattern.cells.map(([, col]) => col));
+    if (pattern.rule) applyRule(rules.find((rule) => rule.id === pattern.rule));
+    fitPattern(maxRow, maxCol);
+    living = new Set();
     const rowStart = Math.floor((height - maxRow - 1) / 2);
     const colStart = Math.floor((width - maxCol - 1) / 2);
     pattern.cells.forEach(([row, col]) => living.add(pointKey(row + rowStart, col + colStart)));
@@ -271,15 +335,18 @@
   }
 
   function setupPatterns() {
-    patterns.forEach((pattern) => {
+    function addPatternCard(pattern, picker, isExperiment) {
       const button = document.createElement("button");
       button.type = "button";
-      button.className = "pattern-card";
+      button.className = isExperiment ? "pattern-card experiment-card" : "pattern-card";
       button.dataset.pattern = pattern.id;
       button.innerHTML = `<strong>${pattern.name}</strong><span>${pattern.hint}</span>`;
       button.addEventListener("click", () => loadPattern(pattern));
-      patternPicker.append(button);
-    });
+      picker.append(button);
+    }
+
+    patterns.forEach((pattern) => addPatternCard(pattern, patternPicker, false));
+    experiments.forEach((experiment) => addPatternCard(experiment, experimentPicker, true));
   }
 
   function setupControls() {
