@@ -114,8 +114,23 @@
     return { birth: new Set([...birth].map(Number)), survival: new Set([...survival].map(Number)) };
   }
 
-  function neighborCounts(counts) {
-    return counts.size === 0 ? "never" : [...counts].join(", ");
+  function neighborPhrase(counts) {
+    const values = [...counts];
+    if (values.length === 9) return "any number of neighbors";
+    if (values.length === 1) return `exactly ${values[0]} neighbor${values[0] === 1 ? "" : "s"}`;
+    if (values.length === 2) return `either ${values[0]} or ${values[1]} neighbors`;
+    return `one of ${values.slice(0, -1).join(", ")}, or ${values.at(-1)} neighbors`;
+  }
+
+  function ruleMechanics(rule) {
+    const { birth, survival } = ruleParts(rule);
+    const birthExplanation = birth.size === 0
+      ? "Empty squares never wake up."
+      : `Empty squares wake up with ${neighborPhrase(birth)}.`;
+    const survivalExplanation = survival.size === 0
+      ? "Living squares always turn off on the next step."
+      : `Living squares stay on with ${neighborPhrase(survival)}.`;
+    return `${birthExplanation} ${survivalExplanation}`;
   }
 
   function countNeighbors(row, col) {
@@ -242,7 +257,7 @@
     currentRule = rule;
     document.documentElement.style.setProperty("--accent", rule.accent);
     ruleSelect.value = rule.id;
-    ruleDescription.textContent = `${rule.id}: ${rule.description}`;
+    ruleDescription.textContent = `${rule.id}: ${rule.description} ${ruleMechanics(rule)}`;
     document.querySelectorAll(".rule-list-item").forEach((item) => item.classList.toggle("selected", item.dataset.rule === rule.id));
     status.textContent = `${rule.name} is now in charge`;
     render();
@@ -328,7 +343,7 @@
       const item = document.createElement("li");
       item.className = "rule-list-item";
       item.dataset.rule = rule.id;
-      item.innerHTML = `<button type="button"><strong>${rule.name}</strong><span class="rule-id">${rule.id}</span><span>Born: ${neighborCounts(birth)}</span><span>Survives: ${neighborCounts(survival)}</span></button>`;
+      item.innerHTML = `<button type="button"><strong>${rule.name}</strong><span class="rule-id">${rule.id}</span><span class="rule-story">${rule.description}</span><span><b>Wake up:</b> ${birth.size === 0 ? "never" : neighborPhrase(birth)}</span><span><b>Stay on:</b> ${survival.size === 0 ? "never" : neighborPhrase(survival)}</span></button>`;
       item.querySelector("button").addEventListener("click", () => applyRule(rule));
       ruleList.append(item);
     });
