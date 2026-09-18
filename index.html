@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101a3a">
+  <title>Life Lab | Conway's Game of Life</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <main class="shell">
+    <header class="masthead">
+      <a class="brand" href="./" aria-label="Life Lab home">
+        <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
+        <span>Life <b>Lab</b></span>
+      </a>
+      <p>Build a tiny universe. Pick its rules. See what it becomes.</p>
+      <a class="api-link" href="#how-it-works">How it works ↓</a>
+    </header>
+
+    <section class="hero" aria-labelledby="playground-title">
+      <div>
+        <p class="eyebrow">A pocket universe for curious minds</p>
+        <h1 id="playground-title">What happens next?</h1>
+        <p class="intro">Click squares to create life. A few simple rules can make spaceships, blinkers, explosions, and surprises.</p>
+      </div>
+      <dl class="scoreboard" aria-label="Universe facts">
+        <div><dt>Generation</dt><dd id="generation">0</dd></div>
+        <div><dt>Living cells</dt><dd id="population">0</dd></div>
+        <div><dt>Rule</dt><dd id="rule-badge">B3/S23</dd></div>
+      </dl>
+    </section>
+
+    <section class="playground" aria-label="Life playground">
+      <aside class="control-panel">
+        <section class="panel-section">
+          <div class="section-heading">
+            <p class="eyebrow">1. Choose a rule</p>
+            <h2>Your universe's rulebook</h2>
+          </div>
+          <label class="select-label" for="rule-select">Life rule</label>
+          <select id="rule-select" aria-describedby="rule-description"></select>
+          <p class="rule-description" id="rule-description"></p>
+          <div class="rule-key" aria-label="Rule notation guide">
+            <span><b>B</b>irth: a dead square comes alive</span>
+            <span><b>S</b>urvival: a living square stays alive</span>
+          </div>
+        </section>
+
+        <section class="panel-section">
+          <div class="section-heading">
+            <p class="eyebrow">2. Start with a pattern</p>
+            <h2>Try a classic</h2>
+          </div>
+          <div class="pattern-picker" id="pattern-picker"></div>
+        </section>
+
+        <section class="panel-section topology-section">
+          <div class="section-heading">
+            <p class="eyebrow">3. Choose the edge</p>
+            <h2>Where does the universe end?</h2>
+          </div>
+          <div class="topology-toggle" role="group" aria-label="Universe edge behavior">
+            <button class="topology-choice selected" type="button" data-topology="bounded">Wall edge</button>
+            <button class="topology-choice" type="button" data-topology="toroidal">Wrap around</button>
+          </div>
+          <p class="topology-copy" id="topology-description">Beyond the edge is empty space.</p>
+        </section>
+      </aside>
+
+      <section class="universe-card" aria-label="Interactive Game of Life grid">
+        <div class="universe-toolbar">
+          <div>
+            <p class="eyebrow">Your universe</p>
+            <h2 id="pattern-name">Empty canvas</h2>
+          </div>
+          <span class="status" id="play-status" aria-live="polite">Ready to explore</span>
+        </div>
+
+        <div class="grid-frame">
+          <div class="grid-viewport" id="grid-viewport">
+            <div class="grid" id="life-grid" role="grid" aria-label="Life grid. Click or drag to add and remove living cells."></div>
+          </div>
+        </div>
+
+        <div class="play-controls">
+          <button class="primary-control" id="play-button" type="button"><span aria-hidden="true">▶</span> Play</button>
+          <button class="control-button" id="step-button" type="button">Step <span aria-hidden="true">→</span></button>
+          <button class="control-button" id="clear-button" type="button">Clear</button>
+          <button class="control-button" id="random-button" type="button">Surprise me</button>
+          <label class="speed-control" for="speed">
+            <span>Speed</span>
+            <input id="speed" type="range" min="1" max="9" value="6">
+          </label>
+          <label class="zoom-control" for="zoom">
+            <span>Grid size <output id="zoom-value" for="zoom">100%</output></span>
+            <input id="zoom" type="range" min="70" max="220" value="100" step="10">
+          </label>
+          <button class="control-button zoom-reset" id="zoom-reset-button" type="button">Reset size</button>
+        </div>
+
+        <p class="tip"><b>Try this:</b> draw five cells in an arrow shape, then press Play. That tiny traveler is called a glider.</p>
+      </section>
+    </section>
+
+    <section class="how-it-works" id="how-it-works" aria-labelledby="how-title">
+      <div>
+        <p class="eyebrow">The big idea</p>
+        <h2 id="how-title">Every square checks its eight neighbors.</h2>
+      </div>
+      <p>A square does not move. It only asks how many neighbors are alive, then follows the rulebook. All squares decide at the same time, so even a small drawing can turn into something unexpected.</p>
+    </section>
+  </main>
+  <script src="./app.js"></script>
+</body>
+</html>
