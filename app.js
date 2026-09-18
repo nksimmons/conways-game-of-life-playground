@@ -86,6 +86,7 @@
   const status = document.querySelector("#play-status");
   const playButton = document.querySelector("#play-button");
   const speed = document.querySelector("#speed");
+  const speedValue = document.querySelector("#speed-value");
   const zoom = document.querySelector("#zoom");
   const zoomValue = document.querySelector("#zoom-value");
   const gridViewport = document.querySelector("#grid-viewport");
@@ -369,7 +370,10 @@
     document.querySelector("#step-button").addEventListener("click", () => { stop(); advance(); status.textContent = "One generation later"; });
     document.querySelector("#clear-button").addEventListener("click", () => { living = new Set(); currentGeneration = 0; currentPattern = "Empty canvas"; stop(); status.textContent = "A fresh empty universe"; document.querySelectorAll(".pattern-card").forEach((card) => card.classList.remove("selected")); render(); });
     document.querySelector("#random-button").addEventListener("click", randomize);
-    speed.addEventListener("input", () => { if (timer !== null) { stop(); play(); } });
+    speed.addEventListener("input", () => {
+      speedValue.textContent = `${speed.value}×`;
+      if (timer !== null) { stop(); play(); }
+    });
     zoom.addEventListener("input", () => setZoom(zoom.value));
     document.querySelector("#zoom-reset-button").addEventListener("click", () => setZoom(100));
     document.querySelectorAll(".topology-choice").forEach((choice) => choice.addEventListener("click", () => {
