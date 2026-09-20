@@ -99,6 +99,8 @@
   const challengeBest = document.querySelector("#challenge-best");
   const challengeButton = document.querySelector("#challenge-button");
   const challengeMessage = document.querySelector("#challenge-message");
+  const challengeRuleName = document.querySelector("#challenge-rule-name");
+  const challengeRuleId = document.querySelector("#challenge-rule-id");
   const colorControls = [
     { input: document.querySelector("#alive-color"), property: "--alive-cell", value: "#f35d51" },
     { input: document.querySelector("#dead-color"), property: "--dead-cell", value: "#1b2a54" },
@@ -116,6 +118,7 @@
   let challengeState = "ready";
   let challengeHistory = new Map();
   let challengeSeed = null;
+  let challengeRule = null;
   let challengeBestScore = Number(window.localStorage.getItem("life-lab-best-score") || "0");
 
   const maxTrackedChallengeStates = 2000;
@@ -185,6 +188,7 @@
     challengeState = "ready";
     challengeHistory = new Map();
     challengeSeed = null;
+    challengeRule = null;
     challengeMessage.textContent = message;
     challengeScore.textContent = "—";
     challengeBest.textContent = challengeBestScore.toLocaleString();
@@ -248,8 +252,9 @@
     currentGeneration = 0;
     currentPattern = "Survival challenge";
     challengeState = "running";
+    challengeRule = currentRule;
     challengeHistory = new Map([[boardSignature(), currentGeneration]]);
-    challengeMessage.textContent = "The clock is running. How long can your universe keep life going?";
+    challengeMessage.textContent = `The clock is running under ${challengeRule.id}. How long can your universe keep life going?`;
     challengeButton.disabled = true;
     challengeButton.textContent = "Challenge running";
     render();
@@ -302,6 +307,9 @@
     population.textContent = living.size.toLocaleString();
     ruleBadge.textContent = currentRule.id;
     patternName.textContent = currentPattern;
+    const displayedChallengeRule = challengeRule ?? currentRule;
+    challengeRuleName.textContent = displayedChallengeRule.name;
+    challengeRuleId.textContent = displayedChallengeRule.id;
     challengeScore.textContent = challengeState === "ready" ? "—" : currentGeneration.toLocaleString();
     challengeBest.textContent = challengeBestScore.toLocaleString();
   }

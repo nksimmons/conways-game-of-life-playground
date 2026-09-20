@@ -15,7 +15,7 @@
         <span>Life <b>Lab</b></span>
       </a>
       <p>Build a tiny universe. Pick its rules. See what it becomes.</p>
-      <a class="api-link" href="#how-it-works">How it works ↓</a>
+      <a class="api-link" href="#rulebook">Rulebook ↓</a>
     </header>
 
     <section class="hero" aria-labelledby="playground-title">
@@ -145,6 +145,7 @@
             <p class="eyebrow">Survival challenge</p>
             <h2 id="challenge-title">How long can your universe keep going?</h2>
             <p>Build a seed, then start the run. Your score is generations survived. If the same shape returns, it has found a loop and can continue forever.</p>
+            <p class="challenge-rule"><span>Challenge rule</span><strong id="challenge-rule-name">Conway's Life</strong><output id="challenge-rule-id">B3/S23</output></p>
           </div>
           <div class="challenge-actions">
             <dl class="challenge-stats" aria-label="Challenge score">
@@ -158,23 +159,15 @@
 
         <p class="tip"><b>Try this:</b> draw five cells in an arrow shape, then press Play. That tiny traveler is called a glider.</p>
       </section>
-    </section>
 
-    <section class="how-it-works" id="how-it-works" aria-labelledby="how-title">
-      <div>
-        <p class="eyebrow">The big idea</p>
-        <h2 id="how-title">Every square checks its eight neighbors.</h2>
-      </div>
-      <p>A square does not move. It only asks how many neighbors are alive, then follows the rulebook. All squares decide at the same time, so even a small drawing can turn into something unexpected.</p>
-    </section>
-
-    <section class="rulebook" aria-labelledby="rulebook-title">
-      <div class="rulebook-heading">
-        <p class="eyebrow">The whole rulebook</p>
-        <h2 id="rulebook-title">Ten ways to make a universe.</h2>
-        <p>Each card tells you when a dead square is born and when a living square survives. Click one to try it.</p>
-      </div>
-      <ul class="rule-list" id="rule-list" aria-label="Life rules"></ul>
+      <section class="rulebook" id="rulebook" aria-labelledby="rulebook-title">
+        <div class="rulebook-heading">
+          <p class="eyebrow">The whole rulebook</p>
+          <h2 id="rulebook-title">Ten ways to make a universe.</h2>
+          <p>Each card tells you when a dead square is born and when a living square survives. Click one to try it.</p>
+        </div>
+        <ul class="rule-list" id="rule-list" aria-label="Life rules"></ul>
+      </section>
     </section>
   </main>
   <script src="./app.js"></script>
