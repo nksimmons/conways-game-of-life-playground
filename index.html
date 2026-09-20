@@ -109,7 +109,8 @@
         </section>
       </aside>
 
-      <section class="universe-card" aria-label="Interactive Game of Life grid">
+      <div class="universe-column">
+        <section class="universe-card" aria-label="Interactive Game of Life grid">
         <div class="universe-toolbar">
           <div>
             <p class="eyebrow">Your universe</p>
@@ -158,16 +159,17 @@
         </section>
 
         <p class="tip"><b>Try this:</b> draw five cells in an arrow shape, then press Play. That tiny traveler is called a glider.</p>
-      </section>
+        </section>
 
-      <section class="rulebook" id="rulebook" aria-labelledby="rulebook-title">
-        <div class="rulebook-heading">
-          <p class="eyebrow">The whole rulebook</p>
-          <h2 id="rulebook-title">Ten ways to make a universe.</h2>
-          <p>Each card tells you when a dead square is born and when a living square survives. Click one to try it.</p>
-        </div>
-        <ul class="rule-list" id="rule-list" aria-label="Life rules"></ul>
-      </section>
+        <section class="rulebook" id="rulebook" aria-labelledby="rulebook-title">
+          <div class="rulebook-heading">
+            <p class="eyebrow">The whole rulebook</p>
+            <h2 id="rulebook-title">Ten ways to make a universe.</h2>
+            <p>Each card tells you when a dead square is born and when a living square survives. Click one to try it.</p>
+          </div>
+          <ul class="rule-list" id="rule-list" aria-label="Life rules"></ul>
+        </section>
+      </div>
     </section>
   </main>
   <script src="./app.js"></script>
