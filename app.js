@@ -77,6 +77,10 @@
   const ruleSelect = document.querySelector("#rule-select");
   const ruleDescription = document.querySelector("#rule-description");
   const ruleList = document.querySelector("#rule-list");
+  const birthCounts = document.querySelector("#birth-counts");
+  const survivalCounts = document.querySelector("#survival-counts");
+  const customRulePreview = document.querySelector("#custom-rule-preview");
+  const applyCustomRuleButton = document.querySelector("#apply-custom-rule");
   const patternPicker = document.querySelector("#pattern-picker");
   const experimentPicker = document.querySelector("#experiment-picker");
   const generation = document.querySelector("#generation");
@@ -123,6 +127,35 @@
   function ruleParts(rule) {
     const [birth, survival] = rule.id.substring(1).split("/S");
     return { birth: new Set([...birth].map(Number)), survival: new Set([...survival].map(Number)) };
+  }
+
+  function selectedCounts(container) {
+    return [...container.querySelectorAll("button")]
+      .filter((button) => button.getAttribute("aria-pressed") === "true")
+      .map((button) => Number(button.dataset.count));
+  }
+
+  function customRule() {
+    const birth = selectedCounts(birthCounts).join("");
+    const survival = selectedCounts(survivalCounts).join("");
+    const id = `B${birth}/S${survival}`;
+    return {
+      id,
+      name: "Your own rule",
+      accent: "#7157c7",
+      description: "A rule you made for this visit. Try changing one number and watch what it does."
+    };
+  }
+
+  function updateCustomRulePreview() {
+    customRulePreview.textContent = customRule().id;
+  }
+
+  function selectCustomCounts(rule) {
+    const { birth, survival } = ruleParts(rule);
+    birthCounts.querySelectorAll("button").forEach((button) => button.setAttribute("aria-pressed", String(birth.has(Number(button.dataset.count)))));
+    survivalCounts.querySelectorAll("button").forEach((button) => button.setAttribute("aria-pressed", String(survival.has(Number(button.dataset.count)))));
+    updateCustomRulePreview();
   }
 
   function neighborPhrase(counts) {
@@ -354,9 +387,10 @@
   function applyRule(rule) {
     currentRule = rule;
     document.documentElement.style.setProperty("--accent", rule.accent);
-    ruleSelect.value = rule.id;
+    ruleSelect.value = rules.some((knownRule) => knownRule.id === rule.id) ? rule.id : "custom";
     ruleDescription.textContent = `${rule.id}: ${rule.description} ${ruleMechanics(rule)}`;
     document.querySelectorAll(".rule-list-item").forEach((item) => item.classList.toggle("selected", item.dataset.rule === rule.id));
+    selectCustomCounts(rule);
     resetChallenge("The rules changed. Start a fresh challenge for this universe.");
     status.textContent = `${rule.name} is now in charge`;
     render();
@@ -437,7 +471,29 @@
       option.textContent = `${rule.name}  ·  ${rule.id}`;
       ruleSelect.append(option);
     });
-    ruleSelect.addEventListener("change", () => applyRule(rules.find((rule) => rule.id === ruleSelect.value)));
+    const customOption = document.createElement("option");
+    customOption.value = "custom";
+    customOption.textContent = "Your own rule";
+    ruleSelect.append(customOption);
+    ruleSelect.addEventListener("change", () => applyRule(ruleSelect.value === "custom" ? customRule() : rules.find((rule) => rule.id === ruleSelect.value)));
+
+    [birthCounts, survivalCounts].forEach((container) => {
+      Array.from({ length: 9 }, (_, count) => count).forEach((count) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "count-button";
+        button.dataset.count = String(count);
+        button.textContent = String(count);
+        button.setAttribute("aria-pressed", "false");
+        button.addEventListener("click", () => {
+          button.setAttribute("aria-pressed", String(button.getAttribute("aria-pressed") !== "true"));
+          updateCustomRulePreview();
+        });
+        container.append(button);
+      });
+    });
+
+    applyCustomRuleButton.addEventListener("click", () => applyRule(customRule()));
 
     rules.forEach((rule) => {
       const { birth, survival } = ruleParts(rule);

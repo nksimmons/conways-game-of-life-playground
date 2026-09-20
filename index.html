@@ -41,6 +41,24 @@
           <label class="select-label" for="rule-select">Life rule</label>
           <select id="rule-select" aria-describedby="rule-description"></select>
           <p class="rule-description" id="rule-description"></p>
+          <fieldset class="custom-rule" aria-describedby="custom-rule-help">
+            <legend>Make your own rule</legend>
+            <p id="custom-rule-help">Choose the neighbor counts that wake an empty square and keep a living square alive.</p>
+            <div class="custom-rule-counts">
+              <div>
+                <span>Birth: wake up with</span>
+                <div class="count-buttons" id="birth-counts" role="group" aria-label="Birth neighbor counts"></div>
+              </div>
+              <div>
+                <span>Survival: stay alive with</span>
+                <div class="count-buttons" id="survival-counts" role="group" aria-label="Survival neighbor counts"></div>
+              </div>
+            </div>
+            <div class="custom-rule-footer">
+              <output class="custom-rule-preview" id="custom-rule-preview">B3/S23</output>
+              <button class="custom-rule-button" id="apply-custom-rule" type="button">Use this rule</button>
+            </div>
+          </fieldset>
           <div class="rule-key" aria-label="Rule notation guide">
             <span><b>B</b>irth: a dead square comes alive</span>
             <span><b>S</b>urvival: a living square stays alive</span>
