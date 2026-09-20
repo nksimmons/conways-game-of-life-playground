@@ -72,7 +72,7 @@ select { width: 100%; appearance: none; border: 1px solid #d7dfec; border-radius
 .topology-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: .4rem; margin-top: .85rem; }
 .topology-choice { border: 1px solid #dfe5ef; border-radius: 9px; background: #fff; color: var(--muted); font-size: .74rem; font-weight: 800; padding: .62rem .35rem; }
 .topology-choice.selected { border-color: var(--accent); background: var(--accent); color: #fff; }
-.experiment-copy { margin: .75rem 0 0; color: var(--muted); font-size: .82rem; line-height: 1.45; }
+.experiment-copy { margin: .75rem 0 0; color: var(--muted); font-size: .82rem; line-height: 1.45; }.experiment-copy a { color: var(--accent-deep); font-weight: 850; }
 .experiment-card { background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 6%, white), #fff); }
 .color-controls { display: grid; gap: .55rem; margin-top: 1rem; }.color-controls label { display: flex; align-items: center; justify-content: space-between; color: var(--muted); font-size: .77rem; font-weight: 800; }.color-controls input { width: 2.75rem; height: 2rem; border: 1px solid #d9e1ec; border-radius: 7px; background: #fff; cursor: pointer; padding: .15rem; }.color-reset { width: 100%; margin-top: .85rem; border: 1px solid #dce3ee; border-radius: 9px; background: #fff; color: var(--ink); font-size: .75rem; font-weight: 800; padding: .6rem; }.color-reset:hover { border-color: var(--accent); color: var(--accent-deep); }
 

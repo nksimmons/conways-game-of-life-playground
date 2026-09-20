@@ -58,6 +58,13 @@
 
   const experiments = [
     {
+      id: "lightweight-spaceship",
+      name: "Lightweight spaceship",
+      hint: "A traveling signal",
+      rule: "B3/S23",
+      cells: cellsFromRle("bo2bo$o4b$o3bo$4o!")
+    },
+    {
       id: "pulsar",
       name: "Pulsar",
       hint: "A three-step clock",
@@ -65,11 +72,46 @@
       cells: cellsFromRle("2b3o3b3o$13b$o4bobo4bo$o4bobo4bo$o4bobo4bo$2b3o3b3o$13b$2b3o3b3o$o4bobo4bo$o4bobo4bo$o4bobo4bo$13b$2b3o3b3o!")
     },
     {
+      id: "pentadecathlon",
+      name: "Pentadecathlon",
+      hint: "A 15-step clock",
+      rule: "B3/S23",
+      cells: cellsFromRle("2bo4bo2b$2ob4ob2o$2bo4bo!")
+    },
+    {
       id: "gosper-gun",
       name: "Glider gun",
       hint: "A signal factory",
       rule: "B3/S23",
       cells: cellsFromRle("24bo$22bobo$12b2o6b2o12b2o$11bo3bo4b2o12b2o$2o8bo5bo3b2o$2o8bo3bob2o4bobo$10bo5bo7bo$11bo3bo$12b2o!")
+    },
+    {
+      id: "signal-bounce",
+      name: "Signal bounce",
+      hint: "Two gliders change paths",
+      rule: "B3/S23",
+      cells: cellsFromRle("7bo$6bo20bo$6b3o17bo$26b3o7$23bo$b2o19b2o$obo19bobo$2bo!")
+    },
+    {
+      id: "signal-eater-clock",
+      name: "Signal eater clock",
+      hint: "A catcher shapes a clock",
+      rule: "B3/S23",
+      cells: cellsFromRle("bo$bo$obo$bo$bo$bo5b2o$bo5bobo$obo6bo$bo7b2o$bo!")
+    },
+    {
+      id: "not-gate",
+      name: "NOT gate",
+      hint: "A signal can cancel a signal",
+      rule: "B3/S23",
+      cells: cellsFromRle("42b2o$42b2o6$obo$b2o$bo$42b3o$41bo3bo$40bo5bo$40bo5bo$8bo34bo$9b2o30bo3bo$8b2o32b3o$43bo3$44b3o$44b3o$43bo3bo$37bobo$37b2o3b2o3b2o$38bo4$23bo$24b2o5bo$23b2o4b2o$30b2o2$44b2o$44b2o!")
+    },
+    {
+      id: "and-not-gate",
+      name: "AND-NOT gate",
+      hint: "One signal passes when another is missing",
+      rule: "B3/S23",
+      cells: cellsFromRle("o19bo19bo19bo$2bo5bo12b2o5bo13bo5bo12b2o5bo$2o4bo13b2o4bo13b2o4b2o12b2o4b2o$7b2o18b2o18b2o18b2o5$7b2o18b2o18b2o18b2o$7bo19bo19bo19bo$8b3o17b3o17b3o17b3o$10bo19bo19bo19bo!")
     }
   ];
 
