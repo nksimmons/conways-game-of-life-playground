@@ -1,6 +1,12 @@
 (() => {
   const baseWidth = 34;
   const baseHeight = 22;
+  const primerRleUrl = "./primer.rle";
+  const neighborDeltas = [
+    [-1, -1], [-1, 0], [-1, 1],
+    [0, -1], [0, 1],
+    [1, -1], [1, 0], [1, 1]
+  ];
   let width = baseWidth;
   let height = baseHeight;
   const rules = [
@@ -21,8 +27,12 @@
     let row = 0;
     let col = 0;
     let digits = "";
+    const body = rle
+      .split(/\r?\n/)
+      .filter((line) => !line.startsWith("#") && !line.startsWith("x"))
+      .join("");
 
-    for (const token of rle) {
+    for (const token of body) {
       if (token >= "0" && token <= "9") {
         digits += token;
         continue;
@@ -143,6 +153,16 @@
   const challengeMessage = document.querySelector("#challenge-message");
   const challengeRuleName = document.querySelector("#challenge-rule-name");
   const challengeRuleId = document.querySelector("#challenge-rule-id");
+  const primerLoadButton = document.querySelector("#primer-load-button");
+  const machineViewer = document.querySelector("#machine-viewer");
+  const machineCanvas = document.querySelector("#machine-canvas");
+  const machineContext = machineCanvas.getContext("2d");
+  const machineStatus = document.querySelector("#machine-status");
+  const machineGeneration = document.querySelector("#machine-generation");
+  const machinePopulation = document.querySelector("#machine-population");
+  const machinePlayButton = document.querySelector("#machine-play-button");
+  const machineSpeed = document.querySelector("#machine-speed");
+  const machineSpeedValue = document.querySelector("#machine-speed-value");
   const colorControls = [
     { input: document.querySelector("#alive-color"), property: "--alive-cell", value: "#f35d51" },
     { input: document.querySelector("#dead-color"), property: "--dead-cell", value: "#1b2a54" },
@@ -162,6 +182,18 @@
   let challengeSeed = null;
   let challengeRule = null;
   let challengeBestScore = Number(window.localStorage.getItem("life-lab-best-score") || "0");
+  let machineLiving = new Set();
+  let machineSeed = new Set();
+  let machineTimer = null;
+  let machineIsLoaded = false;
+  let machineGenerationCount = 0;
+  let machineWidth = 540;
+  let machineHeight = 390;
+  let machineZoom = 1;
+  let machineOffsetX = 0;
+  let machineOffsetY = 0;
+  let machineDragging = false;
+  let machineDragPoint = null;
 
   const maxTrackedChallengeStates = 2000;
 
@@ -571,6 +603,173 @@
     experiments.forEach((experiment) => addPatternCard(experiment, experimentPicker, true));
   }
 
+  function machineKey(row, col) {
+    return row * machineWidth + col;
+  }
+
+  function machineCoordinates(key) {
+    return [Math.floor(key / machineWidth), key % machineWidth];
+  }
+
+  function machineBounds() {
+    let minRow = machineHeight;
+    let maxRow = 0;
+    let minCol = machineWidth;
+    let maxCol = 0;
+    machineLiving.forEach((key) => {
+      const [row, col] = machineCoordinates(key);
+      minRow = Math.min(minRow, row);
+      maxRow = Math.max(maxRow, row);
+      minCol = Math.min(minCol, col);
+      maxCol = Math.max(maxCol, col);
+    });
+    return { minRow, maxRow, minCol, maxCol };
+  }
+
+  function resizeMachineCanvas() {
+    const pixelRatio = window.devicePixelRatio || 1;
+    const cssWidth = Math.max(280, Math.floor(machineCanvas.clientWidth));
+    const cssHeight = Math.round(cssWidth * 2 / 3);
+    const pixelWidth = Math.round(cssWidth * pixelRatio);
+    const pixelHeight = Math.round(cssHeight * pixelRatio);
+    if (machineCanvas.width !== pixelWidth || machineCanvas.height !== pixelHeight) {
+      machineCanvas.width = pixelWidth;
+      machineCanvas.height = pixelHeight;
+    }
+    return { cssWidth, cssHeight, pixelRatio };
+  }
+
+  function renderMachine() {
+    if (!machineIsLoaded) return;
+
+    const { cssWidth, cssHeight, pixelRatio } = resizeMachineCanvas();
+    machineContext.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+    machineContext.clearRect(0, 0, cssWidth, cssHeight);
+    machineContext.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--universe-space").trim();
+    machineContext.fillRect(0, 0, cssWidth, cssHeight);
+
+    const visibleMinCol = Math.max(0, Math.floor(-machineOffsetX / machineZoom) - 1);
+    const visibleMaxCol = Math.min(machineWidth - 1, Math.ceil((cssWidth - machineOffsetX) / machineZoom) + 1);
+    const visibleMinRow = Math.max(0, Math.floor(-machineOffsetY / machineZoom) - 1);
+    const visibleMaxRow = Math.min(machineHeight - 1, Math.ceil((cssHeight - machineOffsetY) / machineZoom) + 1);
+
+    if (machineZoom >= 7) {
+      machineContext.strokeStyle = "rgba(255, 255, 255, .12)";
+      machineContext.lineWidth = 1;
+      machineContext.beginPath();
+      for (let col = visibleMinCol; col <= visibleMaxCol + 1; col += 1) {
+        const x = machineOffsetX + col * machineZoom;
+        machineContext.moveTo(x, 0);
+        machineContext.lineTo(x, cssHeight);
+      }
+      for (let row = visibleMinRow; row <= visibleMaxRow + 1; row += 1) {
+        const y = machineOffsetY + row * machineZoom;
+        machineContext.moveTo(0, y);
+        machineContext.lineTo(cssWidth, y);
+      }
+      machineContext.stroke();
+    }
+
+    machineContext.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--alive-cell").trim();
+    machineLiving.forEach((key) => {
+      const [row, col] = machineCoordinates(key);
+      if (row < visibleMinRow || row > visibleMaxRow || col < visibleMinCol || col > visibleMaxCol) return;
+      const size = Math.max(1, machineZoom - (machineZoom >= 7 ? 1 : 0));
+      machineContext.fillRect(machineOffsetX + col * machineZoom, machineOffsetY + row * machineZoom, size, size);
+    });
+
+    machineGeneration.textContent = machineGenerationCount.toLocaleString();
+    machinePopulation.textContent = machineLiving.size.toLocaleString();
+  }
+
+  function fitMachine() {
+    if (!machineIsLoaded) return;
+    const { cssWidth, cssHeight } = resizeMachineCanvas();
+    const { minRow, maxRow, minCol, maxCol } = machineBounds();
+    const patternWidth = maxCol - minCol + 1;
+    const patternHeight = maxRow - minRow + 1;
+    machineZoom = Math.max(.45, Math.min((cssWidth - 32) / (patternWidth + 24), (cssHeight - 32) / (patternHeight + 24)));
+    machineOffsetX = (cssWidth - patternWidth * machineZoom) / 2 - minCol * machineZoom;
+    machineOffsetY = (cssHeight - patternHeight * machineZoom) / 2 - minRow * machineZoom;
+    renderMachine();
+  }
+
+  function advanceMachine() {
+    const neighborCounts = new Map();
+    machineLiving.forEach((key) => {
+      const [row, col] = machineCoordinates(key);
+      neighborDeltas.forEach(([rowOffset, colOffset]) => {
+        const neighborRow = row + rowOffset;
+        const neighborCol = col + colOffset;
+        if (neighborRow < 0 || neighborRow >= machineHeight || neighborCol < 0 || neighborCol >= machineWidth) return;
+        const neighborKey = machineKey(neighborRow, neighborCol);
+        neighborCounts.set(neighborKey, (neighborCounts.get(neighborKey) || 0) + 1);
+      });
+    });
+
+    const next = new Set();
+    neighborCounts.forEach((count, key) => {
+      if (count === 3 || (count === 2 && machineLiving.has(key))) next.add(key);
+    });
+    machineLiving = next;
+    machineGenerationCount += 1;
+    machineStatus.textContent = `Primer is running at generation ${machineGenerationCount.toLocaleString()}.`;
+    renderMachine();
+  }
+
+  function stopMachine() {
+    if (machineTimer !== null) window.clearInterval(machineTimer);
+    machineTimer = null;
+    machinePlayButton.innerHTML = '<span aria-hidden="true">▶</span> Play';
+  }
+
+  function playMachine() {
+    if (machineTimer !== null) {
+      stopMachine();
+      machineStatus.textContent = `Primer paused at generation ${machineGenerationCount.toLocaleString()}.`;
+      return;
+    }
+    const hertz = Number(machineSpeed.value);
+    machineTimer = window.setInterval(advanceMachine, Math.max(16, Math.round(1000 / hertz)));
+    machinePlayButton.innerHTML = '<span aria-hidden="true">Ⅱ</span> Pause';
+    machineStatus.textContent = `Primer is running at ${hertz} Hz.`;
+  }
+
+  function resetMachine() {
+    stopMachine();
+    machineLiving = new Set(machineSeed);
+    machineGenerationCount = 0;
+    machineStatus.textContent = "Primer reset. Its first prime signal is due near generation 340.";
+    fitMachine();
+  }
+
+  async function loadPrimer() {
+    stop();
+    machineViewer.hidden = false;
+    primerLoadButton.disabled = true;
+    machineStatus.textContent = "Loading the published Primer pattern…";
+    try {
+      const response = await window.fetch(primerRleUrl);
+      if (!response.ok) throw new Error("Primer pattern could not be loaded.");
+      const cells = cellsFromRle(await response.text());
+      const maxRow = Math.max(...cells.map(([row]) => row));
+      const maxCol = Math.max(...cells.map(([, col]) => col));
+      machineHeight = maxRow + 97;
+      machineWidth = maxCol + 97;
+      machineLiving = new Set(cells.map(([row, col]) => machineKey(row + 48, col + 48)));
+      machineSeed = new Set(machineLiving);
+      machineGenerationCount = 0;
+      machineIsLoaded = true;
+      machineStatus.textContent = "Primer is ready. Its first prime signal is due near generation 340.";
+      fitMachine();
+      machineViewer.scrollIntoView({ behavior: "smooth", block: "start" });
+    } catch (error) {
+      machineStatus.textContent = "Primer could not load. Please refresh and try again.";
+    } finally {
+      primerLoadButton.disabled = false;
+    }
+  }
+
   function setupControls() {
     document.querySelector("#play-button").addEventListener("click", play);
     document.querySelector("#step-button").addEventListener("click", () => { stop(); advance(); status.textContent = "One generation later"; });
@@ -592,11 +791,65 @@
         : "The left joins the right and the top joins the bottom. Travelers can wrap around.";
       status.textContent = currentTopology === "bounded" ? "Your universe has walls" : "Your universe wraps around";
     }));
-    colorControls.forEach((control) => control.input.addEventListener("input", () => setColor(control, control.input.value)));
+    colorControls.forEach((control) => control.input.addEventListener("input", () => {
+      setColor(control, control.input.value);
+      renderMachine();
+    }));
     document.querySelector("#color-reset-button").addEventListener("click", () => {
       colorControls.forEach((control) => setColor(control, control.value));
+      renderMachine();
       status.textContent = "Your original colors are back";
     });
+    primerLoadButton.addEventListener("click", loadPrimer);
+    machinePlayButton.addEventListener("click", playMachine);
+    document.querySelector("#machine-step-button").addEventListener("click", () => {
+      stopMachine();
+      advanceMachine();
+    });
+    document.querySelector("#machine-reset-button").addEventListener("click", resetMachine);
+    document.querySelector("#machine-fit-button").addEventListener("click", fitMachine);
+    document.querySelector("#machine-close-button").addEventListener("click", () => {
+      stopMachine();
+      machineViewer.hidden = true;
+    });
+    machineSpeed.addEventListener("input", () => {
+      machineSpeedValue.textContent = `${machineSpeed.value} Hz`;
+      if (machineTimer !== null) {
+        stopMachine();
+        playMachine();
+      }
+    });
+    machineCanvas.addEventListener("wheel", (event) => {
+      if (!machineIsLoaded) return;
+      event.preventDefault();
+      const bounds = machineCanvas.getBoundingClientRect();
+      const cursorX = event.clientX - bounds.left;
+      const cursorY = event.clientY - bounds.top;
+      const worldX = (cursorX - machineOffsetX) / machineZoom;
+      const worldY = (cursorY - machineOffsetY) / machineZoom;
+      machineZoom = Math.min(36, Math.max(.35, machineZoom * (event.deltaY < 0 ? 1.18 : .85)));
+      machineOffsetX = cursorX - worldX * machineZoom;
+      machineOffsetY = cursorY - worldY * machineZoom;
+      renderMachine();
+    }, { passive: false });
+    machineCanvas.addEventListener("pointerdown", (event) => {
+      if (!machineIsLoaded) return;
+      machineDragging = true;
+      machineDragPoint = { x: event.clientX, y: event.clientY };
+      machineCanvas.setPointerCapture(event.pointerId);
+    });
+    machineCanvas.addEventListener("pointermove", (event) => {
+      if (!machineDragging || machineDragPoint === null) return;
+      machineOffsetX += event.clientX - machineDragPoint.x;
+      machineOffsetY += event.clientY - machineDragPoint.y;
+      machineDragPoint = { x: event.clientX, y: event.clientY };
+      renderMachine();
+    });
+    machineCanvas.addEventListener("pointerup", () => {
+      machineDragging = false;
+      machineDragPoint = null;
+    });
+    window.addEventListener("resize", () => renderMachine());
     challengeButton.addEventListener("click", startChallenge);
     window.addEventListener("keydown", (event) => {
       if (event.target.matches("input, select, button")) return;

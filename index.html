@@ -93,6 +93,11 @@
           </div>
           <p class="experiment-copy">Start with clocks, moving signals, signal catchers, and logic gates. Those are the pieces people combine into Life computers. The real prime-number machine, <a href="https://conwaylife.com/wiki/Primer" target="_blank" rel="noreferrer">Primer</a>, is a much bigger 440 × 294-cell build, so this lab begins with pieces you can actually explore.</p>
           <div class="pattern-picker" id="experiment-picker"></div>
+          <div class="machine-launch">
+            <strong>Ready for the real thing?</strong>
+            <span>Open Primer in its own zoomable machine viewer.</span>
+            <button id="primer-load-button" type="button">Open Primer</button>
+          </div>
         </section>
 
         <section class="panel-section color-section">
@@ -159,6 +164,29 @@
         </section>
 
         <p class="tip"><b>Try this:</b> draw five cells in an arrow shape, then press Play. That tiny traveler is called a glider.</p>
+        </section>
+
+        <section class="machine-viewer" id="machine-viewer" aria-labelledby="machine-title" hidden>
+          <div class="machine-toolbar">
+            <div>
+              <p class="eyebrow">Big machine viewer</p>
+              <h2 id="machine-title">Primer: a prime-number machine</h2>
+              <p id="machine-status">Loading the published pattern…</p>
+            </div>
+            <button class="control-button" id="machine-close-button" type="button">Close viewer</button>
+          </div>
+          <canvas id="machine-canvas" aria-label="Primer, a zoomable Conway's Game of Life prime-number machine" tabindex="0"></canvas>
+          <div class="machine-controls">
+            <button class="primary-control" id="machine-play-button" type="button"><span aria-hidden="true">▶</span> Play</button>
+            <button class="control-button" id="machine-step-button" type="button">Step</button>
+            <button class="control-button" id="machine-reset-button" type="button">Reset Primer</button>
+            <label class="speed-control" for="machine-speed">
+              <span>Speed <output id="machine-speed-value" for="machine-speed">8 Hz</output></span>
+              <input id="machine-speed" type="range" min="1" max="60" value="8">
+            </label>
+            <button class="control-button" id="machine-fit-button" type="button">Fit machine</button>
+          </div>
+          <p class="machine-help">Scroll to zoom. Drag to pan. Primer sends a lightweight spaceship for prime number <i>N</i> at generation 120<i>N</i> + 100. Generation: <output id="machine-generation">0</output> · Living cells: <output id="machine-population">0</output></p>
         </section>
 
         <section class="rulebook" id="rulebook" aria-labelledby="rulebook-title">
