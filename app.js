@@ -171,7 +171,7 @@
   const cellButtons = [];
   let living = new Set();
   let currentRule = rules[0];
-  let currentTopology = "bounded";
+  let currentTopology = "toroidal";
   let currentPattern = "Empty canvas";
   let currentGeneration = 0;
   let timer = null;
