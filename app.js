@@ -1,7 +1,26 @@
 (() => {
   const baseWidth = 34;
   const baseHeight = 22;
-  const primerRleUrl = "./primer.rle";
+  const machines = {
+    primer: {
+      id: "primer",
+      file: "./primer.rle",
+      padding: 48,
+      title: "Primer: a prime-number machine",
+      ready: "Primer is ready. Its first prime signal is due near generation 340.",
+      reset: "Primer reset. Its first prime signal is due near generation 340.",
+      story: "Primer sends a lightweight spaceship for prime number <i>N</i> at generation 120<i>N</i> + 100."
+    },
+    max: {
+      id: "max",
+      file: "./max.rle",
+      padding: 260,
+      title: "Max: a world-filling machine",
+      ready: "Max is ready. Watch its striped frontier grow in every direction.",
+      reset: "Max reset. Its population grows faster and faster as it fills space.",
+      story: "Max is a spacefiller: its striped frontier spreads in all four directions, making its population grow quadratically."
+    }
+  };
   const neighborDeltas = [
     [-1, -1], [-1, 0], [-1, 1],
     [0, -1], [0, 1],
@@ -63,7 +82,8 @@
     { id: "block", name: "Block", hint: "Stays still", cells: [[0, 0], [0, 1], [1, 0], [1, 1]] },
     { id: "toad", name: "Toad", hint: "A two-step dance", cells: [[0, 1], [0, 2], [0, 3], [1, 0], [1, 1], [1, 2]] },
     { id: "rpentomino", name: "R-pentomino", hint: "Small, then wild", cells: [[0, 1], [0, 2], [1, 0], [1, 1], [2, 1]] },
-    { id: "diehard", name: "Diehard", hint: "A long adventure", cells: [[0, 6], [1, 0], [1, 1], [2, 1], [2, 5], [2, 6], [2, 7]] }
+    { id: "diehard", name: "Diehard", hint: "A long adventure", cells: [[0, 6], [1, 0], [1, 1], [2, 1], [2, 5], [2, 6], [2, 7]] },
+    { id: "acorn", name: "Acorn", hint: "Seven cells, huge explosion", topology: "bounded", zoom: 34, note: "Acorn is ready with walls and a larger grid. Its full 5,206-generation story needs an infinite universe.", cells: cellsFromRle("bo5b$3bo3b$2o2b3o!") }
   ];
 
   const experiments = [
@@ -154,13 +174,17 @@
   const challengeRuleName = document.querySelector("#challenge-rule-name");
   const challengeRuleId = document.querySelector("#challenge-rule-id");
   const primerLoadButton = document.querySelector("#primer-load-button");
+  const maxLoadButton = document.querySelector("#max-load-button");
   const machineViewer = document.querySelector("#machine-viewer");
+  const machineTitle = document.querySelector("#machine-title");
+  const machineStory = document.querySelector("#machine-story");
   const machineCanvas = document.querySelector("#machine-canvas");
   const machineContext = machineCanvas.getContext("2d");
   const machineStatus = document.querySelector("#machine-status");
   const machineGeneration = document.querySelector("#machine-generation");
   const machinePopulation = document.querySelector("#machine-population");
   const machinePlayButton = document.querySelector("#machine-play-button");
+  const machineResetButton = document.querySelector("#machine-reset-button");
   const machineSpeed = document.querySelector("#machine-speed");
   const machineSpeedValue = document.querySelector("#machine-speed-value");
   const colorControls = [
@@ -194,6 +218,7 @@
   let machineOffsetY = 0;
   let machineDragging = false;
   let machineDragPoint = null;
+  let currentMachine = null;
 
   const maxTrackedChallengeStates = 2000;
 
@@ -410,11 +435,23 @@
     setZoom(fittedZoom);
   }
 
+  function setTopology(topology) {
+    currentTopology = topology;
+    document.querySelectorAll(".topology-choice").forEach((button) => button.classList.toggle("selected", button.dataset.topology === topology));
+    stop();
+    resetChallenge("The edge changed. Start a fresh challenge for this universe.");
+    topologyDescription.textContent = currentTopology === "bounded"
+      ? "Beyond the edge is empty space. Travelers can fall apart at the wall."
+      : "The left joins the right and the top joins the bottom. Travelers can wrap around.";
+    status.textContent = currentTopology === "bounded" ? "Your universe has walls" : "Your universe wraps around";
+  }
+
   function loadPattern(pattern) {
     const maxRow = Math.max(...pattern.cells.map(([row]) => row));
     const maxCol = Math.max(...pattern.cells.map(([, col]) => col));
     if (pattern.rule) applyRule(rules.find((rule) => rule.id === pattern.rule));
-    fitPattern(maxRow, maxCol);
+    if (pattern.topology) setTopology(pattern.topology);
+    if (pattern.zoom) setZoom(pattern.zoom); else fitPattern(maxRow, maxCol);
     living = new Set();
     const rowStart = Math.floor((height - maxRow - 1) / 2);
     const colStart = Math.floor((width - maxCol - 1) / 2);
@@ -424,7 +461,7 @@
     stop();
     resetChallenge(`${pattern.name} is ready. Start the challenge whenever you like.`);
     document.querySelectorAll(".pattern-card").forEach((card) => card.classList.toggle("selected", card.dataset.pattern === pattern.id));
-    status.textContent = `${pattern.name} is ready`;
+    status.textContent = pattern.note ?? `${pattern.name} is ready`;
     render();
   }
 
@@ -694,6 +731,10 @@
     renderMachine();
   }
 
+  function machineName() {
+    return currentMachine?.title.split(":")[0] ?? "Machine";
+  }
+
   function advanceMachine() {
     const neighborCounts = new Map();
     machineLiving.forEach((key) => {
@@ -713,7 +754,7 @@
     });
     machineLiving = next;
     machineGenerationCount += 1;
-    machineStatus.textContent = `Primer is running at generation ${machineGenerationCount.toLocaleString()}.`;
+    machineStatus.textContent = `${machineName()} is running at generation ${machineGenerationCount.toLocaleString()}.`;
     renderMachine();
   }
 
@@ -726,47 +767,57 @@
   function playMachine() {
     if (machineTimer !== null) {
       stopMachine();
-      machineStatus.textContent = `Primer paused at generation ${machineGenerationCount.toLocaleString()}.`;
+      machineStatus.textContent = `${machineName()} paused at generation ${machineGenerationCount.toLocaleString()}.`;
       return;
     }
     const hertz = Number(machineSpeed.value);
     machineTimer = window.setInterval(advanceMachine, Math.max(16, Math.round(1000 / hertz)));
     machinePlayButton.innerHTML = '<span aria-hidden="true">Ⅱ</span> Pause';
-    machineStatus.textContent = `Primer is running at ${hertz} Hz.`;
+    machineStatus.textContent = `${machineName()} is running at ${hertz} Hz.`;
   }
 
   function resetMachine() {
+    if (currentMachine === null) return;
     stopMachine();
     machineLiving = new Set(machineSeed);
     machineGenerationCount = 0;
-    machineStatus.textContent = "Primer reset. Its first prime signal is due near generation 340.";
+    machineStatus.textContent = currentMachine.reset;
     fitMachine();
   }
 
-  async function loadPrimer() {
+  async function loadMachine(machine) {
     stop();
+    stopMachine();
+    machineIsLoaded = false;
     machineViewer.hidden = false;
-    primerLoadButton.disabled = true;
-    machineStatus.textContent = "Loading the published Primer pattern…";
+    const loadButton = machine.id === "primer" ? primerLoadButton : maxLoadButton;
+    loadButton.disabled = true;
+    currentMachine = machine;
+    machineTitle.textContent = machine.title;
+    machineStory.innerHTML = machine.story;
+    machineCanvas.setAttribute("aria-label", `${machineName()}, a zoomable Conway's Game of Life machine`);
+    machineResetButton.textContent = `Reset ${machineName()}`;
+    machineStatus.textContent = `Loading ${machineName().toLowerCase()}…`;
     try {
-      const response = await window.fetch(primerRleUrl);
-      if (!response.ok) throw new Error("Primer pattern could not be loaded.");
+      const response = await window.fetch(machine.file);
+      if (!response.ok) throw new Error(`${machineName()} pattern could not be loaded.`);
       const cells = cellsFromRle(await response.text());
       const maxRow = Math.max(...cells.map(([row]) => row));
       const maxCol = Math.max(...cells.map(([, col]) => col));
-      machineHeight = maxRow + 97;
-      machineWidth = maxCol + 97;
-      machineLiving = new Set(cells.map(([row, col]) => machineKey(row + 48, col + 48)));
+      const padding = machine.padding ?? 48;
+      machineHeight = maxRow + (padding * 2) + 1;
+      machineWidth = maxCol + (padding * 2) + 1;
+      machineLiving = new Set(cells.map(([row, col]) => machineKey(row + padding, col + padding)));
       machineSeed = new Set(machineLiving);
       machineGenerationCount = 0;
       machineIsLoaded = true;
-      machineStatus.textContent = "Primer is ready. Its first prime signal is due near generation 340.";
+      machineStatus.textContent = machine.ready;
       fitMachine();
       machineViewer.scrollIntoView({ behavior: "smooth", block: "start" });
     } catch (error) {
-      machineStatus.textContent = "Primer could not load. Please refresh and try again.";
+      machineStatus.textContent = `${machineName()} could not load. Please refresh and try again.`;
     } finally {
-      primerLoadButton.disabled = false;
+      loadButton.disabled = false;
     }
   }
 
@@ -782,14 +833,7 @@
     zoom.addEventListener("input", () => setZoom(zoom.value));
     document.querySelector("#zoom-reset-button").addEventListener("click", () => setZoom(100));
     document.querySelectorAll(".topology-choice").forEach((choice) => choice.addEventListener("click", () => {
-      currentTopology = choice.dataset.topology;
-      document.querySelectorAll(".topology-choice").forEach((button) => button.classList.toggle("selected", button === choice));
-      stop();
-      resetChallenge("The edge changed. Start a fresh challenge for this universe.");
-      topologyDescription.textContent = currentTopology === "bounded"
-        ? "Beyond the edge is empty space. Travelers can fall apart at the wall."
-        : "The left joins the right and the top joins the bottom. Travelers can wrap around.";
-      status.textContent = currentTopology === "bounded" ? "Your universe has walls" : "Your universe wraps around";
+      setTopology(choice.dataset.topology);
     }));
     colorControls.forEach((control) => control.input.addEventListener("input", () => {
       setColor(control, control.input.value);
@@ -800,13 +844,14 @@
       renderMachine();
       status.textContent = "Your original colors are back";
     });
-    primerLoadButton.addEventListener("click", loadPrimer);
+    primerLoadButton.addEventListener("click", () => loadMachine(machines.primer));
+    maxLoadButton.addEventListener("click", () => loadMachine(machines.max));
     machinePlayButton.addEventListener("click", playMachine);
     document.querySelector("#machine-step-button").addEventListener("click", () => {
       stopMachine();
       advanceMachine();
     });
-    document.querySelector("#machine-reset-button").addEventListener("click", resetMachine);
+    machineResetButton.addEventListener("click", resetMachine);
     document.querySelector("#machine-fit-button").addEventListener("click", fitMachine);
     document.querySelector("#machine-close-button").addEventListener("click", () => {
       stopMachine();

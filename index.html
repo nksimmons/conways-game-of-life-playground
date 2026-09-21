@@ -108,8 +108,11 @@
           <div class="pattern-picker" id="experiment-picker"></div>
           <div class="machine-launch">
             <strong>Ready for the real thing?</strong>
-            <span>Open Primer in its own zoomable machine viewer.</span>
-            <button id="primer-load-button" type="button">Open Primer</button>
+            <span>Open a prime-number machine or a world-filling spacefiller in the zoomable machine viewer.</span>
+            <div class="machine-launch-actions">
+              <button id="primer-load-button" type="button">Open Primer</button>
+              <button id="max-load-button" type="button">Open Max</button>
+            </div>
           </div>
         </section>
 
@@ -176,18 +179,18 @@
             </div>
             <button class="control-button" id="machine-close-button" type="button">Close viewer</button>
           </div>
-          <canvas id="machine-canvas" aria-label="Primer, a zoomable Conway's Game of Life prime-number machine" tabindex="0"></canvas>
+          <canvas id="machine-canvas" aria-label="A zoomable Conway's Game of Life machine" tabindex="0"></canvas>
           <div class="machine-controls">
             <button class="primary-control" id="machine-play-button" type="button"><span aria-hidden="true">▶</span> Play</button>
             <button class="control-button" id="machine-step-button" type="button">Step</button>
-            <button class="control-button" id="machine-reset-button" type="button">Reset Primer</button>
+            <button class="control-button" id="machine-reset-button" type="button">Reset machine</button>
             <label class="speed-control" for="machine-speed">
               <span>Speed <output id="machine-speed-value" for="machine-speed">8 Hz</output></span>
               <input id="machine-speed" type="range" min="1" max="60" value="8">
             </label>
             <button class="control-button" id="machine-fit-button" type="button">Fit machine</button>
           </div>
-          <p class="machine-help">Scroll to zoom. Drag to pan. Primer sends a lightweight spaceship for prime number <i>N</i> at generation 120<i>N</i> + 100. Generation: <output id="machine-generation">0</output> · Living cells: <output id="machine-population">0</output></p>
+          <p class="machine-help">Scroll to zoom. Drag to pan. <span id="machine-story">Primer sends a lightweight spaceship for prime number <i>N</i> at generation 120<i>N</i> + 100.</span> Generation: <output id="machine-generation">0</output> · Living cells: <output id="machine-population">0</output></p>
         </section>
 
         <section class="rulebook" id="rulebook" aria-labelledby="rulebook-title">
